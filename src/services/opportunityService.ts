@@ -2,7 +2,9 @@ import axios from "axios";
 import type { Opportunity, OpportunityResponse } from "../types/opportunity";
 
 export interface OpportunityFilters {
-  roles?: string[];
+  categories?: string[];
+  genders?: string[];
+  ageRanges?: string[];
   location?: string;
   language?: string;
 }
@@ -18,9 +20,14 @@ const client = axios.create({
 
 function buildSearchParams(filters?: OpportunityFilters): string {
   const params = new URLSearchParams();
-  const roles = filters?.roles?.filter(Boolean) ?? [];
-  for (const role of roles) {
-    params.append("roles", role);
+  for (const c of filters?.categories?.filter(Boolean) ?? []) {
+    params.append("category", c);
+  }
+  for (const g of filters?.genders?.filter(Boolean) ?? []) {
+    params.append("gender", g);
+  }
+  for (const a of filters?.ageRanges?.filter(Boolean) ?? []) {
+    params.append("ageRange", a);
   }
   const loc = filters?.location?.trim();
   if (loc) params.set("location", loc);
@@ -34,7 +41,9 @@ export async function fetchOpportunities(
   filters?: OpportunityFilters,
 ): Promise<Opportunity[]> {
   const query = buildSearchParams(filters);
-  const { data } = await client.get<OpportunityResponse>(`/api/opportunities${query}`);
+  const { data } = await client.get<OpportunityResponse>(
+    `/api/opportunities${query}`,
+  );
   if (!Array.isArray(data.items)) {
     throw new Error("Invalid response: expected an array of opportunities");
   }

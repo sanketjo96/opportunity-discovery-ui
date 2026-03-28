@@ -13,6 +13,12 @@ function uniqueSorted(values: string[]): string[] {
   return [...new Set(values)].sort((a, b) => a.localeCompare(b));
 }
 
+function collectTrimmed(items: (string | undefined)[]): string[] {
+  return items
+    .map((s) => s?.trim())
+    .filter((s): s is string => Boolean(s && s.length > 0));
+}
+
 function getErrorMessage(err: unknown): string {
   if (axios.isAxiosError(err)) {
     const msg = err.response?.data;
@@ -31,8 +37,11 @@ export default function App() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [roleCatalog, setRoleCatalog] = useState<string[]>([]);
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [locationCatalog, setLocationCatalog] = useState<string[]>([]);
+  const [languageCatalog, setLanguageCatalog] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
+  const [selectedAgeRanges, setSelectedAgeRanges] = useState<string[]>([]);
   const [locationFilter, setLocationFilter] = useState("");
   const [languageFilter, setLanguageFilter] = useState("");
   const [selected, setSelected] = useState<Opportunity | null>(null);
@@ -40,11 +49,20 @@ export default function App() {
 
   const filters: OpportunityFilters = useMemo(
     () => ({
-      roles: selectedRoles.length > 0 ? selectedRoles : undefined,
+      categories:
+        selectedCategories.length > 0 ? selectedCategories : undefined,
+      genders: selectedGenders.length > 0 ? selectedGenders : undefined,
+      ageRanges: selectedAgeRanges.length > 0 ? selectedAgeRanges : undefined,
       location: locationFilter.trim() || undefined,
       language: languageFilter.trim() || undefined,
     }),
-    [selectedRoles, locationFilter, languageFilter],
+    [
+      selectedCategories,
+      selectedGenders,
+      selectedAgeRanges,
+      locationFilter,
+      languageFilter,
+    ],
   );
 
   const load = useCallback(async () => {
@@ -52,10 +70,18 @@ export default function App() {
     setError(null);
     try {
       const data = await fetchOpportunities(filters);
-      console.log(data)
       setOpportunities(data);
-      setRoleCatalog((prev) =>
-        uniqueSorted([...prev, ...data.flatMap((o) => o.roles)]),
+      setLocationCatalog((prev) =>
+        uniqueSorted([
+          ...prev,
+          ...collectTrimmed(data.map((o) => o.location)),
+        ]),
+      );
+      setLanguageCatalog((prev) =>
+        uniqueSorted([
+          ...prev,
+          ...collectTrimmed(data.map((o) => o.language)),
+        ]),
       );
     } catch (e) {
       setError(getErrorMessage(e));
@@ -108,11 +134,16 @@ export default function App() {
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-          <div className="w-full shrink-0 lg:w-72">
+          <div className="w-full shrink-0 lg:w-80">
             <FiltersPanel
-              roleOptions={roleCatalog}
-              selectedRoles={selectedRoles}
-              onRolesChange={setSelectedRoles}
+              locationOptions={locationCatalog}
+              languageOptions={languageCatalog}
+              selectedCategories={selectedCategories}
+              onCategoriesChange={setSelectedCategories}
+              selectedGenders={selectedGenders}
+              onGendersChange={setSelectedGenders}
+              selectedAgeRanges={selectedAgeRanges}
+              onAgeRangesChange={setSelectedAgeRanges}
               location={locationFilter}
               onLocationChange={setLocationFilter}
               language={languageFilter}

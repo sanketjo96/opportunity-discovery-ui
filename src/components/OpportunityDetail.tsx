@@ -6,6 +6,19 @@ interface OpportunityDetailProps {
   onClose: () => void;
 }
 
+function titleCaseCategory(value: string): string {
+  const lower = value.trim().toLowerCase();
+  if (lower === "voiceovers") return "Voiceovers";
+  return lower ? lower.charAt(0).toUpperCase() + lower.slice(1) : value;
+}
+
+function formatGenderPreference(value: string): string {
+  const t = value.trim();
+  const lower = t.toLowerCase();
+  if (lower === "unisex") return "Unisex";
+  return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
+}
+
 export function OpportunityDetail({
   opportunity,
   onClose,
@@ -72,6 +85,44 @@ export function OpportunityDetail({
           </button>
         </div>
         <div className="space-y-6 overflow-y-auto px-6 py-6">
+          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Category
+              </dt>
+              <dd className="mt-1 text-sm text-slate-800">
+                {opportunity.category?.trim() ? (
+                  titleCaseCategory(opportunity.category)
+                ) : (
+                  <span className="italic text-slate-400">Not specified</span>
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Gender preference
+              </dt>
+              <dd className="mt-1 text-sm text-slate-800">
+                {opportunity.genderPreference?.trim() ? (
+                  formatGenderPreference(opportunity.genderPreference)
+                ) : (
+                  <span className="italic text-slate-400">Not specified</span>
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Age range
+              </dt>
+              <dd className="mt-1 text-sm text-slate-800">
+                {opportunity.ageRange?.trim() ? (
+                  opportunity.ageRange.trim().replace(/-/g, "–")
+                ) : (
+                  <span className="italic text-slate-400">Not specified</span>
+                )}
+              </dd>
+            </div>
+          </dl>
           <section>
             <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Description
