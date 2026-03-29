@@ -5,7 +5,7 @@ import {
 } from "../types/opportunity";
 
 function labelCategory(id: string): string {
-  if (id === "voiceovers") return "Voiceovers";
+  if (id === "voiceover") return "Voiceover";
   return id.charAt(0).toUpperCase() + id.slice(1);
 }
 

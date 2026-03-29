@@ -8,7 +8,8 @@ interface OpportunityDetailProps {
 
 function titleCaseCategory(value: string): string {
   const lower = value.trim().toLowerCase();
-  if (lower === "voiceovers") return "Voiceovers";
+  if (lower === "voiceover" || lower === "voiceovers") return "Voiceover";
+  if (lower === "workshop" || lower === "workshops") return "Workshop";
   return lower ? lower.charAt(0).toUpperCase() + lower.slice(1) : value;
 }
 

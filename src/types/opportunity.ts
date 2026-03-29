@@ -1,7 +1,7 @@
 export const OPPORTUNITY_CATEGORIES = [
   "casting",
-  "workshops",
-  "voiceovers",
+  "workshop",
+  "voiceover",
   "music",
   "other",
 ] as const;
@@ -23,7 +23,7 @@ export interface Opportunity {
   title: string;
   description?: string;
   roles: string[];
-  /** e.g. casting, workshops, voiceovers, music, other */
+  /** e.g. casting, workshop, voiceover, music, other */
   category?: OpportunityCategory | string;
   /** Casting-style preference shown on cards */
   genderPreference?: GenderPreference | string;

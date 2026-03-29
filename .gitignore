@@ -3,13 +3,3 @@ dist
 *.local
 .DS_Store
 .vercel
-
-
-Improvements. 
-
-- Don't list roles on cards, should be only inside modal, show gender and age range on card.
-- Filters should be category (casting, workshops, voiceovers, music, other)
-- Gender preferance (male, female, unisex)
-- Age range (0-20, 21-30, 31-50, 50-70)
-- Location (options should be populated from data)
-- language (options should be populated from data)
