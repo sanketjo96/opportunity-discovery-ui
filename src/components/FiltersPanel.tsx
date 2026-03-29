@@ -23,10 +23,10 @@ interface FiltersPanelProps {
   languageOptions: string[];
   selectedCategories: string[];
   onCategoriesChange: (values: string[]) => void;
-  selectedGenders: string[];
-  onGendersChange: (values: string[]) => void;
-  selectedAgeRanges: string[];
-  onAgeRangesChange: (values: string[]) => void;
+  gender: string;
+  onGenderChange: (value: string) => void;
+  ageRange: string;
+  onAgeRangeChange: (value: string) => void;
   location: string;
   onLocationChange: (value: string) => void;
   language: string;
@@ -38,20 +38,20 @@ export function FiltersPanel({
   languageOptions,
   selectedCategories,
   onCategoriesChange,
-  selectedGenders,
-  onGendersChange,
-  selectedAgeRanges,
-  onAgeRangesChange,
+  gender,
+  onGenderChange,
+  ageRange,
+  onAgeRangeChange,
   location,
   onLocationChange,
   language,
   onLanguageChange,
 }: FiltersPanelProps) {
-  const toggle = (value: string, selected: string[], set: (v: string[]) => void) => {
-    if (selected.includes(value)) {
-      set(selected.filter((x) => x !== value));
+  const toggleCategory = (value: string) => {
+    if (selectedCategories.includes(value)) {
+      onCategoriesChange(selectedCategories.filter((x) => x !== value));
     } else {
-      set([...selected, value]);
+      onCategoriesChange([...selectedCategories, value]);
     }
   };
 
@@ -61,13 +61,14 @@ export function FiltersPanel({
         Filters
       </h2>
       <p className="mt-1 text-xs text-slate-500">
-        Refine listings; values are sent as API query parameters.
+        Category is sent as a comma-separated list. Other fields map to query
+        parameters.
       </p>
 
       <div className="mt-5 space-y-5">
         <fieldset>
           <legend className="text-sm font-medium text-slate-800">Category</legend>
-          <p className="mt-0.5 text-xs text-slate-500">Multi-select</p>
+          <p className="mt-0.5 text-xs text-slate-500">Multi-select (comma-separated in API)</p>
           <ul className="mt-3 space-y-2">
             {OPPORTUNITY_CATEGORIES.map((id) => {
               const inputId = `cat-${id}`;
@@ -82,9 +83,7 @@ export function FiltersPanel({
                       id={inputId}
                       type="checkbox"
                       checked={checked}
-                      onChange={() =>
-                        toggle(id, selectedCategories, onCategoriesChange)
-                      }
+                      onChange={() => toggleCategory(id)}
                       className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                     />
                     <span className="text-sm text-slate-700">{labelCategory(id)}</span>
@@ -95,67 +94,49 @@ export function FiltersPanel({
           </ul>
         </fieldset>
 
-        <fieldset>
-          <legend className="text-sm font-medium text-slate-800">
+        <div>
+          <label
+            htmlFor="filter-gender"
+            className="text-sm font-medium text-slate-800"
+          >
             Gender preference
-          </legend>
-          <p className="mt-0.5 text-xs text-slate-500">Multi-select</p>
-          <ul className="mt-3 space-y-2">
-            {GENDER_PREFERENCES.map((id) => {
-              const inputId = `gender-${id}`;
-              const checked = selectedGenders.includes(id);
-              return (
-                <li key={id}>
-                  <label
-                    htmlFor={inputId}
-                    className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-slate-50"
-                  >
-                    <input
-                      id={inputId}
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() =>
-                        toggle(id, selectedGenders, onGendersChange)
-                      }
-                      className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                    />
-                    <span className="text-sm text-slate-700">{labelGender(id)}</span>
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-        </fieldset>
+          </label>
+          <select
+            id="filter-gender"
+            value={gender}
+            onChange={(e) => onGenderChange(e.target.value)}
+            className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+          >
+            <option value="">Any</option>
+            {GENDER_PREFERENCES.map((id) => (
+              <option key={id} value={id}>
+                {labelGender(id)}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        <fieldset>
-          <legend className="text-sm font-medium text-slate-800">Age range</legend>
-          <p className="mt-0.5 text-xs text-slate-500">Multi-select</p>
-          <ul className="mt-3 space-y-2">
-            {AGE_RANGE_BUCKETS.map((id) => {
-              const inputId = `age-${id}`;
-              const checked = selectedAgeRanges.includes(id);
-              return (
-                <li key={id}>
-                  <label
-                    htmlFor={inputId}
-                    className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-slate-50"
-                  >
-                    <input
-                      id={inputId}
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() =>
-                        toggle(id, selectedAgeRanges, onAgeRangesChange)
-                      }
-                      className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                    />
-                    <span className="text-sm text-slate-700">{labelAgeRange(id)}</span>
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-        </fieldset>
+        <div>
+          <label
+            htmlFor="filter-age"
+            className="text-sm font-medium text-slate-800"
+          >
+            Age range
+          </label>
+          <select
+            id="filter-age"
+            value={ageRange}
+            onChange={(e) => onAgeRangeChange(e.target.value)}
+            className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+          >
+            <option value="">Any</option>
+            {AGE_RANGE_BUCKETS.map((id) => (
+              <option key={id} value={id}>
+                {labelAgeRange(id)}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <div>
           <label

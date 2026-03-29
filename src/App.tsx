@@ -3,8 +3,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { FiltersPanel } from "./components/FiltersPanel";
 import { OpportunityDetail } from "./components/OpportunityDetail";
 import { OpportunityList } from "./components/OpportunityList";
+import { Pagination } from "./components/Pagination";
 import {
   fetchOpportunities,
+  OPPORTUNITIES_PAGE_SIZE,
   type OpportunityFilters,
 } from "./services/opportunityService";
 import type { Opportunity } from "./types/opportunity";
@@ -35,33 +37,60 @@ function getErrorMessage(err: unknown): string {
 
 export default function App() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [locationCatalog, setLocationCatalog] = useState<string[]>([]);
   const [languageCatalog, setLanguageCatalog] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
-  const [selectedAgeRanges, setSelectedAgeRanges] = useState<string[]>([]);
+  const [genderFilter, setGenderFilter] = useState("");
+  const [ageRangeFilter, setAgeRangeFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [languageFilter, setLanguageFilter] = useState("");
+  const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Opportunity | null>(null);
   const [refreshToken, setRefreshToken] = useState(0);
+
+  const filterKey = useMemo(
+    () =>
+      JSON.stringify({
+        selectedCategories,
+        genderFilter,
+        ageRangeFilter,
+        locationFilter,
+        languageFilter,
+      }),
+    [
+      selectedCategories,
+      genderFilter,
+      ageRangeFilter,
+      locationFilter,
+      languageFilter,
+    ],
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [filterKey]);
 
   const filters: OpportunityFilters = useMemo(
     () => ({
       categories:
         selectedCategories.length > 0 ? selectedCategories : undefined,
-      genders: selectedGenders.length > 0 ? selectedGenders : undefined,
-      ageRanges: selectedAgeRanges.length > 0 ? selectedAgeRanges : undefined,
+      gender: genderFilter.trim() || undefined,
+      ageRange: ageRangeFilter.trim() || undefined,
       location: locationFilter.trim() || undefined,
       language: languageFilter.trim() || undefined,
+      page,
+      limit: OPPORTUNITIES_PAGE_SIZE,
     }),
     [
       selectedCategories,
-      selectedGenders,
-      selectedAgeRanges,
+      genderFilter,
+      ageRangeFilter,
       locationFilter,
       languageFilter,
+      page,
     ],
   );
 
@@ -69,23 +98,25 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchOpportunities(filters);
-      setOpportunities(data);
+      const { items, total } = await fetchOpportunities(filters);
+      setOpportunities(items);
+      setTotalCount(total);
       setLocationCatalog((prev) =>
         uniqueSorted([
           ...prev,
-          ...collectTrimmed(data.map((o) => o.location)),
+          ...collectTrimmed(items.map((o) => o.location)),
         ]),
       );
       setLanguageCatalog((prev) =>
         uniqueSorted([
           ...prev,
-          ...collectTrimmed(data.map((o) => o.language)),
+          ...collectTrimmed(items.map((o) => o.language)),
         ]),
       );
     } catch (e) {
       setError(getErrorMessage(e));
       setOpportunities([]);
+      setTotalCount(0);
     } finally {
       setLoading(false);
     }
@@ -96,6 +127,11 @@ export default function App() {
   }, [load]);
 
   const handleRefresh = () => setRefreshToken((t) => t + 1);
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / OPPORTUNITIES_PAGE_SIZE));
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   return (
     <div className="min-h-full">
@@ -140,10 +176,10 @@ export default function App() {
               languageOptions={languageCatalog}
               selectedCategories={selectedCategories}
               onCategoriesChange={setSelectedCategories}
-              selectedGenders={selectedGenders}
-              onGendersChange={setSelectedGenders}
-              selectedAgeRanges={selectedAgeRanges}
-              onAgeRangesChange={setSelectedAgeRanges}
+              gender={genderFilter}
+              onGenderChange={setGenderFilter}
+              ageRange={ageRangeFilter}
+              onAgeRangeChange={setAgeRangeFilter}
               location={locationFilter}
               onLocationChange={setLocationFilter}
               language={languageFilter}
@@ -157,6 +193,15 @@ export default function App() {
               error={error}
               onSelect={setSelected}
             />
+            {!loading && !error ? (
+              <Pagination
+                page={page}
+                pageSize={OPPORTUNITIES_PAGE_SIZE}
+                totalItems={totalCount}
+                onPageChange={setPage}
+                disabled={loading}
+              />
+            ) : null}
           </div>
         </div>
       </main>
